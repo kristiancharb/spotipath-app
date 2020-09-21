@@ -1,3 +1,4 @@
+from typing import List, Tuple, Dict
 import psycopg2
 
 conn = psycopg2.connect(
@@ -9,7 +10,7 @@ conn = psycopg2.connect(
 
 cursor = conn.cursor()
 
-def create_tables():
+def create_tables() -> None:
     cursor.execute(
         '''CREATE TABLE IF NOT EXISTS artists (
             artist_id varchar(42) NOT NULL,
@@ -28,10 +29,10 @@ def create_tables():
     )
     conn.commit()
 
-def close():
+def close() -> None:
     conn.close()
 
-def insert_artists(artists):
+def insert_artists(artists: Dict) -> None:
     args_list = [
         cursor.mogrify('(%s, %s)', artist).decode('utf-8')
         for artist 
@@ -40,7 +41,7 @@ def insert_artists(artists):
     cursor.execute('INSERT INTO artists VALUES ' + ','.join(args_list))
     conn.commit()
 
-def insert_related_artists(related_artists):
+def insert_related_artists(related_artists: List[Tuple[str, str]]):
     args_list = [
         cursor.mogrify('(%s, %s)', artist).decode('utf-8')
         for artist 
@@ -49,17 +50,17 @@ def insert_related_artists(related_artists):
     cursor.execute('INSERT INTO related_artists VALUES ' + ','.join(args_list))
     conn.commit()
 
-def get_id(name):
+def get_id(name: str) -> str:
     cursor.execute('SELECT artist_id FROM artists WHERE name = %s', [name])
     res = cursor.fetchone()
     return res[0] if res else None
 
-def get_name(artist_id):
+def get_name(artist_id: str) -> str:
     cursor.execute('SELECT name FROM artists WHERE artist_id = %s', [artist_id])
     res = cursor.fetchone()
     return res[0] if res else None
 
-def get_related_artists(artist_id):
+def get_related_artists(artist_id) -> List[str]:
     cursor.execute(
         '''
         SELECT related_id FROM related_artists WHERE artist_id = %s
