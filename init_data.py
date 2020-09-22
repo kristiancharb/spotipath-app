@@ -1,12 +1,15 @@
+from config import Config
 import requests
 import collections
-import db
 import time
+import base64
+import db
 
 url = 'https://accounts.spotify.com/api/token'
+spotify_auth = f'{Config.SPOTIFY_CLIENT_ID}:{Config.SPOTIFY_CLIENT_SECRET}'
 headers = {
     'Content-Type': 'application/x-www-form-urlencoded',
-    'Authorization': 'Basic ZWI3ZTJmZTE0MDkxNDcyZTgzMGY2M2QzNWJiOTg4MTk6YzU3YjBmOTQxYzNiNDFiMWE5YmQ1NjhkNTBhYjIzMTg=' 
+    'Authorization': f'Basic {base64.b64encode(spotify_auth.encode()).decode()}'
 }
 data = {
     'grant_type': 'client_credentials' 

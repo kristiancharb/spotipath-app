@@ -1,12 +1,14 @@
 from typing import List, Tuple, Dict, Optional
+from config import Config
 import psycopg2
 
 conn = psycopg2.connect(
     database = "spotify", 
-    user = "postgres",
-    password = "postgres", 
-    host = "localhost", 
-    port = "5432")
+    user = Config.DB_USER,
+    password = Config.DB_PASSWORD, 
+    host = Config.DB_HOST, 
+    port = Config.DB_PORT
+)
 
 cursor = conn.cursor()
 
