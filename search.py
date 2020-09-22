@@ -19,7 +19,7 @@ class BFS:
             self.parents[neighbor] = self.curr
             self.visited.add(neighbor)
 
-def trace_path(parents: Dict[str], src: str, dest: str) -> List[str]:
+def trace_path(parents: Dict[str, str], src: str, dest: str) -> List[str]:
     path = [dest]
     while path[-1] != src:
         path.append(parents[path[-1]])
@@ -47,5 +47,6 @@ def get_path(src_name: str, dest_name: str) -> List[str]:
         dest.visit_neighbors()
     return []
 
-for artist in get_path(sys.argv[1], sys.argv[2]):
-    print(artist)
+if __name__ == '__main__':
+    for artist in get_path(sys.argv[1], sys.argv[2]):
+        print(artist)
