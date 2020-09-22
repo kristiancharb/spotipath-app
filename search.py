@@ -7,7 +7,7 @@ class BFS:
     def __init__(self, node_id: str):
         self.id = node_id
         self.queue = collections.deque([node_id])
-        self.curr: str = None
+        self.curr: str = ''
         self.parents: Dict[str, str] = {}
         self.visited: Set[str] = set()
 
@@ -19,15 +19,19 @@ class BFS:
             self.parents[neighbor] = self.curr
             self.visited.add(neighbor)
 
-def trace_path(parents: List[str], src: str, dest: str) -> List[str]:
+def trace_path(parents: Dict[str], src: str, dest: str) -> List[str]:
     path = [dest]
     while path[-1] != src:
         path.append(parents[path[-1]])
-    return [db.get_name(artist_id) for artist_id in path]
+    ids = [db.get_name(artist_id) for artist_id in path]
+    return list(filter(None, ids))
 
-def get_path(src: str, dest: str) -> List[str]:
-    src_id = db.get_id(src)
-    dest_id = db.get_id(dest)
+def get_path(src_name: str, dest_name: str) -> List[str]:
+    src_id = db.get_id(src_name)
+    dest_id = db.get_id(dest_name)
+    if not src_id or not dest_id:
+        return []
+
     src = BFS(src_id)
     dest = BFS(dest_id)
 

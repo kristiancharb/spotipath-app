@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 import psycopg2
 
 conn = psycopg2.connect(
@@ -50,12 +50,12 @@ def insert_related_artists(related_artists: List[Tuple[str, str]]):
     cursor.execute('INSERT INTO related_artists VALUES ' + ','.join(args_list))
     conn.commit()
 
-def get_id(name: str) -> str:
+def get_id(name: str) -> Optional[str]:
     cursor.execute('SELECT artist_id FROM artists WHERE name = %s', [name])
     res = cursor.fetchone()
-    return res[0] if res else None
+    return res[0] if res else ''
 
-def get_name(artist_id: str) -> str:
+def get_name(artist_id: str) -> Optional[str]:
     cursor.execute('SELECT name FROM artists WHERE artist_id = %s', [artist_id])
     res = cursor.fetchone()
     return res[0] if res else None
