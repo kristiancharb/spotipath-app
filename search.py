@@ -28,8 +28,6 @@ def trace_path(parents: List[str], src: str, dest: str) -> List[str]:
 def get_path(src: str, dest: str) -> List[str]:
     src_id = db.get_id(src)
     dest_id = db.get_id(dest)
-    src_queue = collections.deque([src_id])
-    dest_queue = collections.deque([dest_id])
     src = BFS(src_id)
     dest = BFS(dest_id)
 
