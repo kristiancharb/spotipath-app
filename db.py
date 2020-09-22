@@ -2,6 +2,9 @@ from typing import List, Tuple, Dict, Optional
 from config import Config
 import psycopg2
 
+class InvalidArgument(Exception):
+    pass
+
 conn = psycopg2.connect(
     database = "spotify", 
     user = Config.DB_USER,
@@ -52,15 +55,19 @@ def insert_related_artists(related_artists: List[Tuple[str, str]]):
     cursor.execute('INSERT INTO related_artists VALUES ' + ','.join(args_list))
     conn.commit()
 
-def get_id(name: str) -> Optional[str]:
+def get_id(name: str) -> str:
     cursor.execute('SELECT artist_id FROM artists WHERE name = %s', [name])
     res = cursor.fetchone()
-    return res[0] if res else ''
+    if not res:
+        raise InvalidArgument()
+    return res[0]
 
-def get_name(artist_id: str) -> Optional[str]:
+def get_name(artist_id: str) -> str:
     cursor.execute('SELECT name FROM artists WHERE artist_id = %s', [artist_id])
     res = cursor.fetchone()
-    return res[0] if res else None
+    if not res:
+        raise InvalidArgument()
+    return res[0]
 
 def get_related_artists(artist_id) -> List[str]:
     cursor.execute(

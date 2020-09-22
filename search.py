@@ -19,6 +19,9 @@ class BFS:
             self.parents[neighbor] = self.curr
             self.visited.add(neighbor)
 
+class NoPathFound(Exception):
+    pass
+
 def trace_path(parents: Dict[str, str], src: str, dest: str) -> List[str]:
     path = [dest]
     while path[-1] != src:
@@ -29,8 +32,6 @@ def trace_path(parents: Dict[str, str], src: str, dest: str) -> List[str]:
 def get_path(src_name: str, dest_name: str) -> List[str]:
     src_id = db.get_id(src_name)
     dest_id = db.get_id(dest_name)
-    if not src_id or not dest_id:
-        return []
 
     src = BFS(src_id)
     dest = BFS(dest_id)
@@ -45,7 +46,7 @@ def get_path(src_name: str, dest_name: str) -> List[str]:
             return src_path + dest_path
         src.visit_neighbors()
         dest.visit_neighbors()
-    return []
+    raise NoPathFound()
 
 if __name__ == '__main__':
     for artist in get_path(sys.argv[1], sys.argv[2]):

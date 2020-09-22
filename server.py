@@ -1,3 +1,4 @@
+import db
 from flask import Flask, request, jsonify
 import search
 
@@ -9,7 +10,22 @@ def test():
 
 @app.route('/path/', methods=['POST'])
 def path():
-    src = request.json['src']
-    dest = request.json['dest']
-    path = search.get_path(src, dest)
+    src = request.json.get('src')
+    dest = request.json.get('dest')
+    if not src or not dest:
+        return jsonify({
+            'error': 'Request must include src (string) and dest(string)'
+        }), 400
+
+    try:
+        path = search.get_path(src, dest)
+    except db.InvalidArgument:
+        return jsonify({
+            'error': 'Invalid artist name'
+        }), 400
+    except search.NoPathFound:
+        return jsonify({
+            'error': 'No path found between artists'
+        }), 404
+
     return jsonify(path)
