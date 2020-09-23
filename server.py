@@ -1,5 +1,5 @@
 import db
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 import search
 
 app = Flask(__name__)
@@ -29,3 +29,8 @@ def path():
         }), 404
 
     return jsonify(path)
+
+@app.teardown_appcontext
+def close_db(error):
+    if hasattr(g, 'db'):
+        g.db.close()

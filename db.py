@@ -1,21 +1,24 @@
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict, Any
 from config import Config
+from flask import g
 import psycopg2
 
 class InvalidArgument(Exception):
     pass
 
-conn = psycopg2.connect(
-    database = "spotify", 
-    user = Config.DB_USER,
-    password = Config.DB_PASSWORD, 
-    host = Config.DB_HOST, 
-    port = Config.DB_PORT
-)
+def get_conn():
+    if not hasattr(g, 'db'):
+        g.db = psycopg2.connect(
+            database = "spotify", 
+            user = Config.DB_USER,
+            password = Config.DB_PASSWORD, 
+            host = Config.DB_HOST, 
+            port = Config.DB_PORT
+        )
+    return g.db 
 
-cursor = conn.cursor()
-
-def create_tables() -> None:
+def create_tables(connection: Any) -> None:
+    cursor = connection.cursor()
     cursor.execute(
         '''CREATE TABLE IF NOT EXISTS artists (
             artist_id varchar(42) NOT NULL,
@@ -32,30 +35,30 @@ def create_tables() -> None:
             CONSTRAINT related_id_fk FOREIGN KEY(related_id) REFERENCES artists(artist_id)
         )'''
     )
-    conn.commit()
+    connection.commit()
 
-def close() -> None:
-    conn.close()
-
-def insert_artists(artists: Dict) -> None:
+def insert_artists(connection: Any, artists: Dict) -> None:
+    cursor = connection.cursor()
     args_list = [
         cursor.mogrify('(%s, %s)', artist).decode('utf-8')
         for artist 
         in artists.values()
     ]
     cursor.execute('INSERT INTO artists VALUES ' + ','.join(args_list))
-    conn.commit()
+    connection.commit()
 
-def insert_related_artists(related_artists: List[Tuple[str, str]]):
+def insert_related_artists(connection: Any, related_artists: List):
+    cursor = connection.cursor()
     args_list = [
         cursor.mogrify('(%s, %s)', artist).decode('utf-8')
         for artist 
         in related_artists
     ]
     cursor.execute('INSERT INTO related_artists VALUES ' + ','.join(args_list))
-    conn.commit()
+    connection.commit()
 
 def get_id(name: str) -> str:
+    cursor = get_conn().cursor()
     cursor.execute('SELECT artist_id FROM artists WHERE name = %s', [name])
     res = cursor.fetchone()
     if not res:
@@ -63,6 +66,7 @@ def get_id(name: str) -> str:
     return res[0]
 
 def get_name(artist_id: str) -> str:
+    cursor = get_conn().cursor()
     cursor.execute('SELECT name FROM artists WHERE artist_id = %s', [artist_id])
     res = cursor.fetchone()
     if not res:
@@ -70,6 +74,7 @@ def get_name(artist_id: str) -> str:
     return res[0]
 
 def get_related_artists(artist_id) -> List[str]:
+    cursor = get_conn().cursor()
     cursor.execute(
         '''
         SELECT related_id FROM related_artists WHERE artist_id = %s

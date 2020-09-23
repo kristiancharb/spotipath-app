@@ -1,5 +1,6 @@
 from config import Config
 import requests
+import psycopg2
 import collections
 import time
 import base64
@@ -17,7 +18,14 @@ data = {
 resp = requests.post(url, data=data, headers=headers)
 token = resp.json()['access_token']
 
-db.create_tables()
+conn = psycopg2.connect(
+            database = "spotify", 
+            user = Config.DB_USER,
+            password = Config.DB_PASSWORD, 
+            host = Config.DB_HOST, 
+            port = Config.DB_PORT
+)
+db.create_tables(conn)
 
 visited_artists = {}
 related_artists = []
@@ -28,7 +36,7 @@ headers = {
 
 queue = collections.deque([('5K4W6rqBFWDnAN6FQUkS6x', 'Kanye West')])
 
-for i in range(1000):
+for i in range(100000):
     artist_id, artist_name = queue.pop()
     url = f'https://api.spotify.com/v1/artists/{artist_id}/related-artists'
     resp = requests.get(url, headers=headers)
@@ -56,6 +64,6 @@ for i in range(1000):
     if i % 50 == 0:
         print(f'Processed {i} artists')
 
-db.insert_artists(visited_artists)
-db.insert_related_artists(related_artists)
-db.close()
+db.insert_artists(conn, visited_artists)
+db.insert_related_artists(conn, related_artists)
+conn.close()
