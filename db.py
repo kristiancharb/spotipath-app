@@ -35,26 +35,37 @@ def create_tables(connection: Any) -> None:
             CONSTRAINT related_id_fk FOREIGN KEY(related_id) REFERENCES artists(artist_id)
         )'''
     )
+    cursor.execute('CREATE INDEX ON related_artists (artist_id)')
+    cursor.execute('CREATE INDEX ON related_artists (related_id)')
+    cursor.execute('CREATE INDEX ON artists (name)')
+
+    
     connection.commit()
 
-def insert_artists(connection: Any, artists: Dict) -> None:
+def insert_artists(connection: Any, artists: List) -> None:
+    if not len(artists):
+        return
     cursor = connection.cursor()
     args_list = [
         cursor.mogrify('(%s, %s)', artist).decode('utf-8')
         for artist 
-        in artists.values()
+        in artists
     ]
-    cursor.execute('INSERT INTO artists VALUES ' + ','.join(args_list))
+    values = ','.join(args_list)
+    cursor.execute(f'INSERT INTO artists VALUES {values} ON CONFLICT (artist_id) DO NOTHING')
     connection.commit()
 
 def insert_related_artists(connection: Any, related_artists: List):
+    if not len(related_artists):
+        return
     cursor = connection.cursor()
     args_list = [
         cursor.mogrify('(%s, %s)', artist).decode('utf-8')
         for artist 
         in related_artists
     ]
-    cursor.execute('INSERT INTO related_artists VALUES ' + ','.join(args_list))
+    values = ','.join(args_list)
+    cursor.execute(f'INSERT INTO related_artists VALUES {values} ON CONFLICT (artist_id, related_id) DO NOTHING')
     connection.commit()
 
 def get_id(name: str) -> str:
