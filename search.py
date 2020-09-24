@@ -3,6 +3,8 @@ import db
 import collections
 import sys
 
+Artist = collections.namedtuple('Artist', ('artist_id', 'name'))
+
 class BFS:
     def __init__(self, node_id: str):
         self.id = node_id
@@ -22,14 +24,17 @@ class BFS:
 class NoPathFound(Exception):
     pass
 
-def trace_path(parents: Dict[str, str], src: str, dest: str) -> List[str]:
+def trace_path(parents: Dict[str, str], src: str, dest: str) -> List[Dict[str, str]]:
     path = [dest]
     while path[-1] != src:
         path.append(parents[path[-1]])
-    ids = [db.get_name(artist_id) for artist_id in path]
-    return list(filter(None, ids))
+    return [
+        {'id': artist_id, 'name': db.get_name(artist_id)} 
+        for artist_id in path
+    ]
+    
 
-def get_path(src_name: str, dest_name: str) -> List[str]:
+def get_path(src_name: str, dest_name: str) -> List[Dict[str, str]]:
     src_id = db.get_id(src_name)
     dest_id = db.get_id(dest_name)
 

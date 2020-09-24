@@ -8,10 +8,10 @@ app = Flask(__name__)
 def test():
     return 'Welcome to the Spotipath API'
 
-@app.route('/path/', methods=['POST'])
+@app.route('/path/', methods=['GET'])
 def path():
-    src = request.json.get('src')
-    dest = request.json.get('dest')
+    src = request.args.get('src')
+    dest = request.args.get('dest')
     if not src or not dest:
         return jsonify({
             'error': 'Request must include src (string) and dest(string)'
@@ -29,6 +29,7 @@ def path():
         }), 404
 
     return jsonify(path)
+
 
 @app.teardown_appcontext
 def close_db(error):
