@@ -30,6 +30,17 @@ def path():
 
     return jsonify(path)
 
+@app.route('/artists/', methods=['GET'])
+def artists():
+    query = request.args.get('q')
+    if not query:
+        return jsonify({
+            'error': 'Request must include q (string)'
+        }), 400
+
+    artists = db.query_artist(query)
+    return jsonify(artists)
+
 
 @app.teardown_appcontext
 def close_db(error):

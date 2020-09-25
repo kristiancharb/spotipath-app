@@ -1,9 +1,8 @@
+from artist import Artist
 from typing import List, Dict, Set
 import db
 import collections
 import sys
-
-Artist = collections.namedtuple('Artist', ('artist_id', 'name'))
 
 class BFS:
     def __init__(self, node_id: str):
