@@ -1,13 +1,11 @@
 from config import Config
 from typing import List, Dict
+from search import Artist
 import requests
 import psycopg2
-import collections
 import time
 import base64
 import db
-
-Artist = collections.namedtuple('Artist', ('artist_id', 'name'))
 
 def get_chartmetric_token() -> str:
     url = 'https://api.chartmetric.com/api/token'
@@ -57,93 +55,37 @@ conn = psycopg2.connect(
 
 db.create_tables(conn)
 
-for j, a in enumerate(top_artists):
-    queue = collections.deque([a])
-    visited = set([a.artist_id])
-    artists = {a.artist_id: a}
-    related = []
-    for i in range(100):
-        if i % 20 == 0 and i != 0:
-            print(f'Processed {i} artists')
+db.insert_artists(conn, top_artists)
 
-        if not queue:
-            break
-        artist = queue.pop()
-        url = f'https://api.spotify.com/v1/artists/{artist.artist_id}/related-artists'
+artists = db.get_all_artists_init(conn)
+print(f'Artists fetched from DB: {len(artists)}')
+for i, artist in enumerate(artists):
+    if i % 20 == 0 and i != 0:
+        print(f'Processed {i} artists...')
+    url = f'https://api.spotify.com/v1/artists/{artist.artist_id}/related-artists'
+    resp = requests.get(url, headers=spotify_headers)
+
+    while resp.status_code == 429:
+        print(f'Sleeping: {i}')
+        time.sleep(0.3)
         resp = requests.get(url, headers=spotify_headers)
 
-        if resp.status_code == 429:
-            queue.append(artist)
-            print(f'Sleeping: {i}')
-            time.sleep(0.2)
-            continue
-        elif resp.status_code != 200 or 'artists' not in resp.json():
-            print(resp.json())
-            continue
-        
-        related_artists = [
-            Artist(a['id'], a['name']) 
-            for a in resp.json()['artists']
-        ]
+    if resp.status_code != 200:
+        print(resp)
+        print(resp.json())
+        continue
+    
+    related_artists = [
+        Artist(a['id'], a['name'])
+        for a in resp.json()['artists']
+    ]
 
-        for related_artist in related_artists:
-            if related_artist.artist_id not in visited:
-                queue.appendleft(related_artist)
-                related.append((artist.artist_id, related_artist.artist_id))
-                artists[related_artist.artist_id] = related_artist
+    related = [
+        (a.artist_id, artist.artist_id)
+        for a in related_artists
+    ]
 
-        visited.add(artist.artist_id)
-
-    db.insert_artists(conn, list(artists.values()))
+    db.insert_artists(conn, related_artists)
     db.insert_related_artists(conn, related)
-    print(f'Inserted rows ({j}')
 
 conn.close()
-# conn = psycopg2.connect(
-#             database = "spotify", 
-#             user = Config.DB_USER,
-#             password = Config.DB_PASSWORD, 
-#             host = Config.DB_HOST, 
-#             port = Config.DB_PORT
-# )
-
-# visited_artists = {}
-# related_artists = []
-
-# headers = {
-#     'Authorization': f'Bearer {token}'
-# }
-
-# queue = collections.deque([('5K4W6rqBFWDnAN6FQUkS6x', 'Kanye West')])
-
-# for i in range(100000):
-#     artist_id, artist_name = queue.pop()
-#     url = f'https://api.spotify.com/v1/artists/{artist_id}/related-artists'
-#     resp = requests.get(url, headers=headers)
-
-#     if resp.status_code == 429:
-#         queue.append((artist_id, artist_name))
-#         print(f'Sleeping: {i}')
-#         time.sleep(0.1)
-#         continue
-
-#     if resp.status_code != 200:
-#         print(resp)
-#         print(resp.json())
-#         continue
-#     artists = resp.json()['artists']
-
-#     for artist in artists:
-#         curr_id, curr_name = artist['id'], artist['name']
-
-#         if curr_id not in visited_artists:
-#             queue.appendleft((curr_id, curr_name))
-#             visited_artists[curr_id] = (curr_id, curr_name)
-#             related_artists.append((artist_id, curr_id))
-
-#     if i % 50 == 0:
-#         print(f'Processed {i} artists')
-
-# db.insert_artists(conn, visited_artists)
-# db.insert_related_artists(conn, related_artists)
-# conn.close()

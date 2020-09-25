@@ -1,6 +1,7 @@
 from typing import List, Tuple, Dict, Any
 from config import Config
 from flask import g
+from artist import Artist
 import psycopg2
 
 class InvalidArgument(Exception):
@@ -38,6 +39,7 @@ def create_tables(connection: Any) -> None:
     cursor.execute('CREATE INDEX ON related_artists (artist_id)')
     cursor.execute('CREATE INDEX ON related_artists (related_id)')
     cursor.execute('CREATE INDEX ON artists (name)')
+    cursor.execute('CREATE INDEX full_text ON artists USING GIN (to_tsvector(\'english\', name));')
 
     
     connection.commit()
@@ -84,7 +86,7 @@ def get_name(artist_id: str) -> str:
         raise InvalidArgument()
     return res[0]
 
-def get_related_artists(artist_id) -> List[str]:
+def get_related_artists(artist_id: str) -> List[str]:
     cursor = get_conn().cursor()
     cursor.execute(
         '''
@@ -96,3 +98,21 @@ def get_related_artists(artist_id) -> List[str]:
     res = cursor.fetchall()
     return [row[0] for row in res]
 
+def query_artist(query: str) -> List[Artist]:
+    cursor = get_conn().cursor()
+    query = query.replace(' ', ' & ')
+    cursor.execute(
+    '''
+        SELECT *
+        FROM artists
+        WHERE to_tsvector(name) @@ to_tsquery(%s);
+    ''', [f'{query}:*'])
+    res = cursor.fetchall()
+    return [Artist(row[0], row[1]) for row in res]
+
+
+def get_all_artists_init(connection: Any) -> List[Artist]:
+    cursor = connection.cursor()
+    cursor.execute('SELECT * FROM artists')
+    res = cursor.fetchall()
+    return [Artist(row[0], row[1]) for row in res]
