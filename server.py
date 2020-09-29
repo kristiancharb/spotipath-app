@@ -1,14 +1,19 @@
 import db
 from flask import Flask, request, jsonify, g
+from flask_cors import CORS, cross_origin
 import search
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/')
+@cross_origin()
 def test():
     return 'Welcome to the Spotipath API'
 
 @app.route('/path/', methods=['GET'])
+@cross_origin()
 def path():
     src = request.args.get('src')
     dest = request.args.get('dest')
@@ -31,6 +36,7 @@ def path():
     return jsonify(path)
 
 @app.route('/artists/', methods=['GET'])
+@cross_origin()
 def artists():
     query = request.args.get('q')
     if not query:
