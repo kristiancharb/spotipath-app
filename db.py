@@ -5,7 +5,8 @@ from artist import Artist
 import psycopg2
 
 class InvalidArgument(Exception):
-    pass
+    def __init__(self, message: str = ''):
+        self.message = message
 
 def get_conn():
     if not hasattr(g, 'db'):
@@ -75,7 +76,7 @@ def get_id(name: str) -> str:
     cursor.execute('SELECT artist_id FROM artists WHERE name = %s', [name])
     res = cursor.fetchone()
     if not res:
-        raise InvalidArgument()
+        raise InvalidArgument(f'No artists with name {name}')
     return res[0]
 
 def get_name(artist_id: str) -> str:
@@ -83,7 +84,7 @@ def get_name(artist_id: str) -> str:
     cursor.execute('SELECT name FROM artists WHERE artist_id = %s', [artist_id])
     res = cursor.fetchone()
     if not res:
-        raise InvalidArgument()
+        raise InvalidArgument(f'No artists with id {artist_id}')
     return res[0]
 
 def get_related_artists(artist_id: str) -> List[str]:

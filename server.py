@@ -24,9 +24,9 @@ def path():
 
     try:
         path = search.get_path(src, dest)
-    except db.InvalidArgument:
+    except db.InvalidArgument as error:
         return jsonify({
-            'error': 'Invalid artist name'
+            'error': error.message
         }), 400
     except search.NoPathFound:
         return jsonify({
