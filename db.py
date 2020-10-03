@@ -73,11 +73,16 @@ def insert_related_artists(connection: Any, related_artists: List):
 
 def get_id(name: str) -> str:
     cursor = get_conn().cursor()
-    cursor.execute('SELECT artist_id FROM artists WHERE name = %s', [name])
-    res = cursor.fetchone()
-    if not res:
-        raise InvalidArgument(f'No artists with name {name}')
-    return res[0]
+    cursor.execute(
+    '''
+        SELECT artist_id
+        FROM artists
+        WHERE to_tsvector(name) @@ to_tsquery('english', %s);
+    ''', [f'\'{name}\''])
+    res = cursor.fetchall()
+    if not len(res):
+        raise InvalidArgument(f'No artists match name ${name}')
+    return res[0][0]
 
 def get_name(artist_id: str) -> str:
     cursor = get_conn().cursor()
