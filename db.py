@@ -75,13 +75,16 @@ def get_id(name: str) -> str:
     cursor = get_conn().cursor()
     cursor.execute(
     '''
-        SELECT artist_id
+        SELECT *
         FROM artists
-        WHERE to_tsvector(name) @@ to_tsquery('english', %s);
+        WHERE to_tsvector(name) @@ plainto_tsquery(%s);
     ''', [f'\'{name}\''])
     res = cursor.fetchall()
     if not len(res):
         raise InvalidArgument(f'No artists match name {name}')
+    for row in res:
+        if row[1].lower() == name.lower():
+            return row[0]
     return res[0][0]
 
 def get_name(artist_id: str) -> str:
