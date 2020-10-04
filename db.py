@@ -81,7 +81,7 @@ def get_id(name: str) -> str:
     ''', [f'\'{name}\''])
     res = cursor.fetchall()
     if not len(res):
-        raise InvalidArgument(f'No artists match name ${name}')
+        raise InvalidArgument(f'No artists match name {name}')
     return res[0][0]
 
 def get_name(artist_id: str) -> str:

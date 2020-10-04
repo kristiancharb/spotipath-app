@@ -1,6 +1,7 @@
 from config import Config
 from typing import List, Dict
 from search import Artist
+import spotify
 import requests
 import psycopg2
 import time
@@ -15,19 +16,6 @@ def get_chartmetric_token() -> str:
     resp = requests.post(url, data=data)
     return resp.json()['token']
 
-def get_spotify_token() -> str:
-    url = 'https://accounts.spotify.com/api/token'
-    spotify_auth = f'{Config.SPOTIFY_CLIENT_ID}:{Config.SPOTIFY_CLIENT_SECRET}'
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': f'Basic {base64.b64encode(spotify_auth.encode()).decode()}'
-    }
-    data = {
-        'grant_type': 'client_credentials' 
-    }
-    resp = requests.post(url, data=data, headers=headers)
-    return resp.json()['access_token']
-
 def get_top_artists(token: str) -> List['Artist']:
     url = 'https://api.chartmetric.com/api/charts/airplay/artists?since=2020-09-09&duration=weekly'
     headers = {
@@ -39,7 +27,7 @@ def get_top_artists(token: str) -> List['Artist']:
 
 token = get_chartmetric_token()
 top_artists = get_top_artists(token)
-token = get_spotify_token()
+token = spotify.get_spotify_token()
 
 spotify_headers = {
     'Authorization': f'Bearer {token}'

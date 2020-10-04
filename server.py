@@ -1,6 +1,7 @@
 import db
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS, cross_origin
+import spotify
 import search
 
 app = Flask(__name__)
@@ -47,6 +48,18 @@ def artists():
     artists = db.query_artist(query)
     return jsonify(artists)
 
+@app.route('/access-token/', methods=['GET'])
+@cross_origin()
+def access_token():
+    try:
+        token = spotify.get_spotify_token()
+        return jsonify({
+            'token': token
+        })
+    except:
+        return jsonify({
+            'error': 'Failed to fetch Spotify access token'
+        })
 
 @app.teardown_appcontext
 def close_db(error):
