@@ -24,13 +24,11 @@ to each of the starting artists and returns that path.
 | GET    	| /access-token 	|                                                          	| Returns a Spotify access token that is valid for<br>1 hour:<br> `{token: '12345'}`                                                      	|
 
 ### How to Run
-- Run:
 ```
 $ pip install flask flask_cors psycopg2 requests
-```
-- Intialize database (coming soon)
-- Run
-```
+$ cd data
+$ python3 init_data.py
+$ cd ..
 $ export FLASK_APP=server.py
 $ flask run
 ```
