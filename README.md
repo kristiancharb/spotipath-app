@@ -26,10 +26,11 @@ to each of the starting artists and returns that path.
 ### How to Run
 - Run:
 ```
-pip install flask flask_cors psycopg2 requests
+$ pip install flask flask_cors psycopg2 requests
 ```
 - Intialize database (coming soon)
 - Run
 ```
-export FLASK_APP=
+$ export FLASK_APP=server.py
+$ flask run
 ```
