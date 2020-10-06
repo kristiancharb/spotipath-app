@@ -1,11 +1,16 @@
+import os, sys
+currentdir = os.path.dirname(os.path.realpath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir)
+
 from config import Config
-from typing import List, Dict
+from typing import List
 from search import Artist
 import spotify
 import requests
 import psycopg2
 import time
-import base64
+import csv
 import db
 
 def get_chartmetric_token() -> str:
@@ -16,19 +21,14 @@ def get_chartmetric_token() -> str:
     resp = requests.post(url, data=data)
     return resp.json()['token']
 
-def get_top_artists(token: str) -> List['Artist']:
-    url = 'https://api.chartmetric.com/api/charts/airplay/artists?since=2020-09-09&duration=weekly'
-    headers = {
-        'Authorization': f'Bearer {token}'
-    }
-    resp = requests.get(url, headers=headers)
-    artists = resp.json()['obj']['data']
-    return [Artist(artist['spotify_artist_ids'].pop(), artist['name']) for artist in artists]
+def get_top_artists() -> List['Artist']:
+    with open('artists.csv') as f:
+        reader = csv.reader(f)
+        artists = [Artist(row[0], row[1]) for row in reader]
+        return artists
 
-token = get_chartmetric_token()
-top_artists = get_top_artists(token)
+top_artists = get_top_artists()
 token = spotify.get_spotify_token()
-
 spotify_headers = {
     'Authorization': f'Bearer {token}'
 }
@@ -42,11 +42,10 @@ conn = psycopg2.connect(
 )
 
 db.create_tables(conn)
-
 db.insert_artists(conn, top_artists)
-
 artists = db.get_all_artists_init(conn)
 print(f'Artists fetched from DB: {len(artists)}')
+
 for i, artist in enumerate(artists):
     if i % 20 == 0 and i != 0:
         print(f'Processed {i} artists...')
