@@ -43,36 +43,37 @@ conn = psycopg2.connect(
 
 db.create_tables(conn)
 db.insert_artists(conn, top_artists)
-artists = db.get_all_artists_init(conn)
-print(f'Artists fetched from DB: {len(artists)}')
+for i in range(15):
+    artists = db.get_all_artists_init(conn)
+    print(f'Artists fetched from DB: {len(artists)}')
 
-for i, artist in enumerate(artists):
-    if i % 20 == 0 and i != 0:
-        print(f'Processed {i} artists...')
-    url = f'https://api.spotify.com/v1/artists/{artist.artist_id}/related-artists'
-    resp = requests.get(url, headers=spotify_headers)
-
-    while resp.status_code == 429:
-        print(f'Sleeping: {i}')
-        time.sleep(0.3)
+    for i, artist in enumerate(artists):
+        if i % 20 == 0 and i != 0:
+            print(f'Processed {i} artists...')
+        url = f'https://api.spotify.com/v1/artists/{artist.artist_id}/related-artists'
         resp = requests.get(url, headers=spotify_headers)
 
-    if resp.status_code != 200:
-        print(resp)
-        print(resp.json())
-        continue
-    
-    related_artists = [
-        Artist(a['id'], a['name'])
-        for a in resp.json()['artists']
-    ]
+        while resp.status_code == 429:
+            print(f'Sleeping: {i}')
+            time.sleep(0.3)
+            resp = requests.get(url, headers=spotify_headers)
 
-    related = [
-        (a.artist_id, artist.artist_id)
-        for a in related_artists
-    ]
+        if resp.status_code != 200:
+            print(resp)
+            print(resp.json())
+            continue
+        
+        related_artists = [
+            Artist(a['id'], a['name'])
+            for a in resp.json()['artists']
+        ]
 
-    db.insert_artists(conn, related_artists)
-    db.insert_related_artists(conn, related)
+        related = [
+            (a.artist_id, artist.artist_id)
+            for a in related_artists
+        ]
+
+        db.insert_artists(conn, related_artists)
+        db.insert_related_artists(conn, related)
 
 conn.close()
