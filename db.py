@@ -37,10 +37,10 @@ def create_tables(connection: Any) -> None:
             CONSTRAINT related_id_fk FOREIGN KEY(related_id) REFERENCES artists(artist_id)
         )'''
     )
-    cursor.execute('CREATE INDEX ON related_artists (artist_id)')
-    cursor.execute('CREATE INDEX ON related_artists (related_id)')
-    cursor.execute('CREATE INDEX ON artists (name)')
-    cursor.execute('CREATE INDEX full_text ON artists USING GIN (to_tsvector(\'english\', name));')
+    cursor.execute('CREATE INDEX IF NOT EXISTS artist_id ON related_artists (artist_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS related_id ON related_artists (related_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS artist_name ON artists (name)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS full_text ON artists USING GIN (to_tsvector(\'english\', name));')
 
     
     connection.commit()
