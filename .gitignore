@@ -4,3 +4,4 @@ config.py
 spotify-app
 myproject.service
 notes.txt
+.env.db.prod
