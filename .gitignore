@@ -5,4 +5,3 @@ spotify-app
 myproject.service
 notes.txt
 .env.db.prod
-nginx-ssl.conf
