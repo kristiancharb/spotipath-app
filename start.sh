@@ -1,7 +1,5 @@
 #!/bin/bash
 
-git pull
-
 # Stop prod service
 docker-compose -f docker-compose.prod.yml down -v
 
