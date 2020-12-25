@@ -21,4 +21,4 @@ jobs:
             docker-compose -f docker-compose.prod.yml down -v
             docker-compose -f docker-compose.prod.yml up -d --build
             sleep 5
-            zcat ~/spotify_dump.gz | gunzip | psql -h 127.0.0.1 --username=postgres --dbname=spotify
+            cat ~/spotify_dump.gz | gunzip | psql -h 127.0.0.1 --username=postgres --dbname=spotify
