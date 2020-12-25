@@ -10,8 +10,13 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/')
 @cross_origin()
-def test():
+def index():
     return 'Welcome to the Spotipath API'
+
+@app.route('/test/')
+@cross_origin()
+def test():
+    return 'This is a test route'
 
 @app.route('/path/', methods=['GET'])
 @cross_origin()
